@@ -3,7 +3,7 @@
 #include "vulkan/vulkan.h"
 #include "GLFW/glfw3.h"
 
-#include "GraphicsCore/VulkanCore/Vulkan.hpp"
+#include "GraphicsCore/VulkanCore/VulkanRenderer.hpp"
 
 namespace FE
 {
@@ -15,6 +15,6 @@ namespace FE
 
 		void run();
 	private:
-		VulkanRenderer v;
+		Renderer renderer;
 	};
 }

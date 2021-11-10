@@ -8,25 +8,32 @@ namespace FE
 	FirstEngine::FirstEngine()
 	{
 		FE_SCOPE_TRACE("Startup", "FirstEngine::FirstEngine");
-		FE_LOG_VERBOSE("Starting")
+		FE_LOG_VERBOSE("Starting");
 		
-		FE_TRACING_FLUSH
+		FE_TRACING_FLUSH;
 	}
 
 	FirstEngine::~FirstEngine()
 	{
 		FE_SCOPE_TRACE("Cleanup", "FirstEngine::~FirstEngine()");
-		FE_LOG_VERBOSE("Ending")
+		FE_LOG_VERBOSE("Ending");
 
-		FE_TRACING_FLUSH
+		FE_TRACING_FLUSH;
 	}
 
 	void FirstEngine::run()
 	{
-		FE_SCOPE_TRACE("Run", "FirstEngine::run()");
-		FE_LOG_VERBOSE("Running")
+		FE_SCOPE_TRACE("Running", "FirstEngine::run()");
+		FE_LOG_VERBOSE("Running");
 
-		FE_TRACING_FLUSH
+		renderer.createWindow(800, 600, "First Window");
+		renderer.createWindow(200, 200, "Second Window");
+		while (renderer.running)
+		{
+			renderer.draw();
+		}
+
+		FE_TRACING_FLUSH;
 	}
 }
 

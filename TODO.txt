@@ -1,0 +1,36 @@
+This is a list of all #... notes that I left around the code that should be cleaned up or added to.
+
+#Features // device features
+#Compute // add compute capabilities
+#Resizing // add resizing after swapchain is set up
+
+
+#TODO // general cleanup
+
+Add a function to check for vulkan error codes and replace all VK_RESULT checks, put in VulkanValidationLayers files
+
+
+
+
+
+
+
+renderer structure:
+
+renderer class
+	Only one can exist
+	Main interface for rendering
+
+		vkPhysicalDevice(s) // depends on compute
+		vkDevice(s) // depends on compute
+
+Window class
+	Many can exist
+	One for each window
+
+		glfwWindow
+		VkSurface
+		VkSwapchainKHR
+		VkImageView
+
+pipelines and command buffers should be able to be split and shared between windows... maybe Ill see

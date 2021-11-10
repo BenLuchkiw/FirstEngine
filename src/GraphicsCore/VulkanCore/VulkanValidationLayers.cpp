@@ -4,6 +4,8 @@ namespace FE
 {
 	bool initValidationLayers()
 	{
+		FE_SCOPE_TRACE("Startup", "FE::initValidationLayers()");
+
 #ifndef VULKAN_VALIDATION_LAYERS
 		return false;
 #endif
@@ -25,8 +27,10 @@ namespace FE
 
 	}
 
-	std::vector<const char*> getRequiredExtensions() 
+	std::vector<const char*> getRequiredExtensions()
 	{
+		FE_SCOPE_TRACE("Startup", "FE::getRequiredExtensions()");
+
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -44,8 +48,9 @@ namespace FE
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) 
+		void* pUserData)
 	{
+		FE_SCOPE_TRACE("Startup", "FE::debugCallback");
 
 		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		{
@@ -61,6 +66,7 @@ namespace FE
 #ifndef VULKAN_VALIDATION_LAYERS
 		return;
 #endif
+		FE_SCOPE_TRACE("Startup", "FE::initializeDebugMessenger");
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -76,7 +82,9 @@ namespace FE
 		FE_LOG_ERROR(result != VK_SUCCESS, "Failed to set up debug messenger!");
 	}
 
-	void terminateDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+	void terminateDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+	{
+		FE_SCOPE_TRACE("Startup", "FE::terminateDebugMessenger");
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);

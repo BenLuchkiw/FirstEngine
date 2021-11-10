@@ -38,9 +38,12 @@ target_include_directories(${PROJECT_NAME}
 	${CMAKE_CURRENT_LIST_DIR}/libs/minitrace/include
 	${CMAKE_CURRENT_LIST_DIR}/libs/vulkan/include
 )
-
+target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_DIR="${CMAKE_CURRENT_LIST_DIR}")
 
 # TODO make these optional and toggleable
 target_compile_definitions(${PROJECT_NAME} PUBLIC MTR_ENABLED)
-target_compile_definitions(${PROJECT_NAME} PUBLIC GLFW_INCLUDE_VULKAN)
+target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG)
+
+# Need more stable Vulkan related definitions
+target_compile_definitions(${PROJECT_NAME} PUBLIC RENDER_API=1) # 1 means Vulkan and is the only supported API
 target_compile_definitions(${PROJECT_NAME} PUBLIC VULKAN_VALIDATION_LAYERS=1)
