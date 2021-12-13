@@ -7,13 +7,10 @@
 int main()
 {
 	try
-	{
-		std::string dir = ROOT_DIR;
-		dir += "/libs/minitrace/trace.json";
-		
-		FE_BEGIN_TRACING(dir.c_str()); // #TODO make this a relative path using cmake
-		__FILE__;
-			FE_THREAD_NAME("Main Thread");
+	{		
+		FE_BEGIN_TRACING(std::string(ROOT_DIR + "/libs/minitrace/trace.json").c_str());
+
+		FE_THREAD_NAME("Main Thread");
 		{
 			FE_SCOPE_TRACE("Program", "Main");
 			FE::FirstEngine app;

@@ -10,22 +10,29 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
-#include "VulkanWindow.hpp"
 #include "VulkanValidationLayers.hpp"
 
 namespace FE
 {
+	// Forward declaration
+	class Window;
+
 	class Renderer
 	{
 	public:
-		bool running = true;
-
 		Renderer();
 		~Renderer();
 
 		void draw(); // Cycles through all windows and draws for them
 		//void compute(); #Compute
 		void createWindow(uint32_t width, uint32_t height, const std::string& windowName);  // Some info as parameters... Not sure yet
+		bool shouldExit();
+
+		// For vulkan internal use only
+		VkInstance getInstance() { return m_instance; }
+		VkPhysicalDevice getRenderingDevice() { return m_renderingDevice; }
+		//VkPhysicalDevice getComputeDevice() { return m_computeDevice; } #Compute
+		VkDevice getDevice() { return m_device; }
 
 	private: // Private methods
 		void createInstance();

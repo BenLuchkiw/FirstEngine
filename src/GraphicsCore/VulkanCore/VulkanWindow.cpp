@@ -1,15 +1,18 @@
 #include "VulkanWindow.hpp"
 
+#include "VulkanRenderer.hpp"
+
 namespace FE
 {
-	Window::Window(const VkInstance& instance, const VkPhysicalDevice& renderingDevice, const VkDevice& device, VkExtent2D screenDimensions, const std::string& windowName)
-		: m_instance(instance), m_renderingDevice(renderingDevice), m_device(device), m_screenExtent(screenDimensions), m_windowName(windowName)
+	Window::Window(Renderer* renderer, VkExtent2D screenDimensions, const std::string& windowName)
+		: m_renderer(renderer), m_screenExtent(screenDimensions), m_windowName(windowName)
 	{
 		FE_SCOPE_TRACE("Startup", "FE::Window::Window");
 
 		createWindow();
 		createSwapchain();
 		createImageViews();
+		createPipelines();
 	}
 
 	Window::~Window()
@@ -18,11 +21,11 @@ namespace FE
 
 		for (const auto& imageView : m_imageViews)
 		{
-			vkDestroyImageView(m_device, imageView, NULL);
+			vkDestroyImageView(m_renderer->getDevice(), imageView, NULL);
 		}
-
-		vkDestroySwapchainKHR(m_device, m_swapchain, NULL);
-		vkDestroySurfaceKHR(m_instance, m_surface, NULL);
+		
+		vkDestroySwapchainKHR(m_renderer->getDevice(), m_swapchain, NULL);
+		vkDestroySurfaceKHR(m_renderer->getInstance(), m_surface, NULL);
 		glfwDestroyWindow(m_window);
 	}
 
@@ -35,7 +38,7 @@ namespace FE
 		FE_LOG_ERROR(m_window == NULL, "GLFW failed to create a window");
 
 
-		FE_LOG_ERROR(glfwCreateWindowSurface(m_instance, m_window, NULL, &m_surface) != VK_SUCCESS, "GLFW Failed to create window surface");
+		FE_LOG_ERROR(glfwCreateWindowSurface(m_renderer->getInstance(), m_window, NULL, &m_surface) != VK_SUCCESS, "GLFW Failed to create window surface");
 	}
 
 	void Window::createSwapchain()
@@ -43,11 +46,11 @@ namespace FE
 		FE_SCOPE_TRACE("Running", "FE::VulkanSwapchain::initSwapchain");
 
 		VkBool32 supported;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_renderingDevice, 0, m_surface, &supported);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_renderer->getRenderingDevice(), 0, m_surface, &supported);
 		FE_LOG_ERROR(supported != VK_TRUE, "The selected graphics device does not have surface support");
 
 		// Selecting surface cababilities
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_renderingDevice, m_surface, &m_capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_renderer->getRenderingDevice(), m_surface, &m_capabilities);
 		uint32_t m_imageCount;
 		if (m_capabilities.maxImageCount > 0 && ((m_capabilities.minImageCount + 1) <= m_capabilities.maxImageCount))
 		{
@@ -61,10 +64,10 @@ namespace FE
 
 		// Selecting format
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_renderingDevice, m_surface, &formatCount, NULL);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_renderer->getRenderingDevice(), m_surface, &formatCount, NULL);
 		FE_LOG_WARNING(formatCount == 0, "Vulkan could not find any surface formats, could be bad, not sure"); // #TODO verify and update this warning
 		std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_renderingDevice, m_surface, &formatCount, surfaceFormats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_renderer->getRenderingDevice(), m_surface, &formatCount, surfaceFormats.data());
 
 		m_surfaceFormat = surfaceFormats[0];
 		for (const auto& format : surfaceFormats)
@@ -94,9 +97,9 @@ namespace FE
 
 		// Selecting present mode
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_renderingDevice, m_surface, &presentModeCount, NULL);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_renderer->getRenderingDevice(), m_surface, &presentModeCount, NULL);
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_renderingDevice, m_surface, &presentModeCount, presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_renderer->getRenderingDevice(), m_surface, &presentModeCount, presentModes.data());
 		m_presentMode = VK_PRESENT_MODE_FIFO_KHR;
 		for (const auto& presentMode : presentModes)
 		{
@@ -126,7 +129,7 @@ namespace FE
 		createInfo.clipped = VK_TRUE; // #TODO this needs more research, and may end up needing to be changed for simulations
 		createInfo.oldSwapchain; // #Resizing will need this
 
-		vkCreateSwapchainKHR(m_device, &createInfo, NULL, &m_swapchain);
+		vkCreateSwapchainKHR(m_renderer->getDevice(), &createInfo, NULL, &m_swapchain);
 	}
 
 	void Window::recreateSwapchain()
@@ -138,9 +141,9 @@ namespace FE
 	{
 		FE_SCOPE_TRACE("Running", "FE::Window::createImageViews");
 
-		vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_imageCount, NULL);
+		vkGetSwapchainImagesKHR(m_renderer->getDevice(), m_swapchain, &m_imageCount, NULL);
 		m_images.resize(m_imageCount);
-		vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_imageCount, m_images.data());
+		vkGetSwapchainImagesKHR(m_renderer->getDevice(), m_swapchain, &m_imageCount, m_images.data());
 
 		m_imageViews.resize(m_imageCount);
 		VkImageViewCreateInfo createInfo{};
@@ -162,7 +165,12 @@ namespace FE
 		for (int i = 0; i < m_imageCount; i++)
 		{
 			createInfo.image = m_images[i];
-			FE_LOG_ERROR(vkCreateImageView(m_device, &createInfo, NULL, &m_imageViews[i]) != VK_SUCCESS, "Vulkan failed to create image view");
+			FE_LOG_ERROR(vkCreateImageView(m_renderer->getDevice(), &createInfo, NULL, &m_imageViews[i]) != VK_SUCCESS, "Vulkan failed to create image view");
 		}
+	}
+
+	void Window::createPipelines()
+	{
+		m_pipeline.emplace_back(std::make_unique<Pipeline>(m_renderer, this, "SimpleVertex.spv", "SimpleFragment.spv"));
 	}
 }

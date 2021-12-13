@@ -15,13 +15,15 @@
 #define FE_THREAD_NAME(name)
 #endif
 
+#include "Logging/Logging.hpp"
+#define FE_LOG_WARNING(condition, message)  if(condition){Logging::logCode(message, LOG_LEVEL_WARNING, __FILE__, __LINE__);}
+#define FE_LOG_ERROR(condition, message)    if(condition){Logging::logCode(message, LOG_LEVEL_ERROR, __FILE__, __LINE__);}
+#define FE_LOG_FATAL(condition, message)	if(condition){Logging::logCode(message, LOG_LEVEL_FATAL, __FILE__, __LINE__);}
 
 #ifdef DEBUG
-#define FE_LOG_VERBOSE(message) std::cout << message << std::endl
-#define FE_LOG_WARNING(condition, message) if(condition){std::cout << "Warning at " << __FILE__ << ", on line: " << __LINE__ << ". " << message << std::endl;}
-#define FE_LOG_ERROR(condition, message)   if(condition){std::cout << "Error at "   << __FILE__ << ", on line: " << __LINE__ << ". " << message << std::endl;}
+#define FE_LOG_GENERIC(condition, message)	if(condition){Logging::logCode(message, LOG_LEVEL_GENERIC);}
+#define FE_LOG_INFO(condition, message)		if(condition){Logging::logCode(message, LOG_LEVEL_INFO);}
 #else
-#define FE_LOG_VERBOSE(message)
-#define FE_LOG_WARNING(condition, message)
-#define FE_LOG_ERROR(condition, message) if(condition) {std::throw std::runtime_error("Error at " + __FILE__ + ", on line: " + __LINE__ + ". " + message;}
+#define FE_LOG_GENERIC(condition, message)
+#define FE_LOG_INFO(condition, message)
 #endif

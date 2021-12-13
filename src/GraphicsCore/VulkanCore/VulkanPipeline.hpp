@@ -13,16 +13,31 @@
 
 namespace FE
 {
+	// Forward declarations
+	class Renderer;
+	class Window;
+
 	class Pipeline
 	{
 	public:
-		Pipeline(const std::string& vertexFilename, const std::string& fragmentFilename);
-	private: // Methods
+		Pipeline(Renderer* renderer, Window* window, const std::string& vertexFilename, const std::string& fragmentFilename);
+		~Pipeline();
 
+	private: // Methods
+		void createPipeline();
 	private: // Members
-		Shader fragmentShader;
+		VkPipeline m_pipeline;
+		VkRenderPass m_renderPass;
+		VkPipelineLayout m_pipelineLayout;
+
+
+		Shader m_fragmentShader;
 		//Shader tessellationShader;
 		//Shader geometryShader;
-		Shader vertexShader;
+		Shader m_vertexShader;
+
+		// Pointers to parents
+		Renderer* m_renderer;
+		Window* m_window;
 	};
 }

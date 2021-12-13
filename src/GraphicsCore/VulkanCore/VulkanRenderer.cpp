@@ -2,7 +2,7 @@
 #include "VulkanRenderer.hpp"
 
 #include "VulkanValidationLayers.hpp"
-#include "VulkanRenderer.hpp"
+#include "VulkanWindow.hpp"
 
 namespace FE
 {
@@ -42,7 +42,7 @@ namespace FE
 
 		glfwTerminate();
 	}
-
+	
 	void Renderer::draw()
 	{
 		FE_SCOPE_TRACE("Running", "FE::Renderer::draw");
@@ -57,17 +57,17 @@ namespace FE
 			/* Poll for and process events */
 			glfwPollEvents();
 		}
-
-		if (m_windows.size() == 0)
-		{
-			running = false;
-		}
 	}
 
 	void Renderer::createWindow(uint32_t width, uint32_t height, const std::string& windowName)
 	{
 		FE_SCOPE_TRACE("Running", "FE::Renderer::createWindow");
-		m_windows.emplace_back(std::make_unique<Window>(m_instance, m_renderingDevice, m_device, VkExtent2D(width, height), windowName));
+		m_windows.emplace_back(std::make_unique<Window>(this, VkExtent2D(width, height), windowName));
+	}
+
+	bool Renderer::shouldExit()
+	{
+		return m_windows.size() == 0;
 	}
 
 	// Private methods
@@ -76,7 +76,7 @@ namespace FE
 	{
 		FE_SCOPE_TRACE("Startup", "FE::Renderer::createInstance");
 
-		VkApplicationInfo appInfo = {};
+		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "First Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -84,29 +84,27 @@ namespace FE
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
-		VkInstanceCreateInfo createInfo = {};
+		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		createInfo.pNext = NULL;
+		createInfo.pNext = nullptr;
 		createInfo.flags = 0;
 		createInfo.pApplicationInfo = &appInfo;
 		auto extensions = getRequiredExtensions(); // gets all glfw extensions
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
+		createInfo.enabledLayerCount = 0;
 
 
+		const char* layerNames = "VK_LAYER_KHRONOS_validation";
 		if (initValidationLayers())
 		{
 			createInfo.enabledLayerCount = 1;
-			// A hack to get validation layers working, feel free to fix
-			const char* layerNames = "VK_LAYER_KHRONOS_validation";
 			createInfo.ppEnabledLayerNames = &layerNames;
+		}
 
-		}// else layer count and layer names are already set to null
-
-		VkInstance tempInstance;
 		FE_LOG_ERROR(vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS, "Failed to create Vulkan instance");
 	}
-
+  
 	void Renderer::pickPhysicalDevice() // #TODO make this function pick the best device not the first capable
 	{
 		FE_SCOPE_TRACE("Startup", "FE::Renderer::pickPhysicalDevice");
@@ -123,7 +121,6 @@ namespace FE
 		{
 			if (glfwGetPhysicalDevicePresentationSupport(m_instance, m_physicalDevices[i], m_graphicsQueueIndex))
 			{
-				m_renderingDevice = m_physicalDevices[i];
 				found = true;
 			}
 		}
@@ -134,6 +131,18 @@ namespace FE
 			VkPhysicalDeviceProperties data;
 			vkGetPhysicalDeviceProperties(m_physicalDevices.at(i), &data);
 			m_physicalDeviceProperties.push_back(data);
+		}
+
+		// Select the first device as default if none of the below conditions are selected
+		m_renderingDevice = m_physicalDevices[0]; 
+
+		for (int i = 0; i < m_physicalDevices.size(); i++)
+		{
+			// Selects last discrete gpu in list
+			if (m_physicalDeviceProperties[i].deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			{
+				m_renderingDevice = m_physicalDevices[i];
+			}
 		}
 	}
 

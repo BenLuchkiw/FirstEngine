@@ -2,9 +2,14 @@
 
 #include "Core/FirstEngineInclude.hpp"
 
+#include "VulkanRenderer.hpp"
+
 namespace FE
 {
-	enum class ShaderType
+	// Forward declarations
+	class Renderer;
+
+	enum ShaderType
 	{
 		FE_SHADER_TYPE_VERTEX = 0,
 		//FE_SHADER_TYPE_TESSELLATION = 1,
@@ -15,24 +20,44 @@ namespace FE
 	class Shader
 	{
 	public:
-		Shader(const std::string& filename, ShaderType shaderType)
+		Shader(Renderer* renderer, const std::string& filename, ShaderType shaderType)
+			: m_renderer(renderer)
 		{
 			FE_SCOPE_TRACE("Startup", "FE::Shader::Shader");
-			std::fstream file(filename, std::ios::ate | std::ios::binary);
+
+			std::string fileLocation = std::string(ROOT_DIR + std::string("/src/GraphicsCore/Resources/Shaders/") + filename);
+			std::ifstream file(fileLocation, std::ios::ate | std::ios::binary);
 			
 			FE_LOG_ERROR(!file.is_open(), "Vulkan failed to open the shader file called: " + filename);
 
-			size_t size = (size_t)file.tellg();
-			m_shader.reserve(size);
+			size_t size = 0;
+			size = (size_t)file.tellg();
+			std::vector<char> shader(size);
 			file.seekg(0);
-			file.read(m_shader.data(), size);
+			file.read(shader.data(), size);
 			file.close();
+
+			VkShaderModuleCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			createInfo.pNext;
+			createInfo.flags;
+			createInfo.codeSize = shader.size();
+			createInfo.pCode = reinterpret_cast<const uint32_t*>(shader.data());
+
+			FE_LOG_ERROR(vkCreateShaderModule(m_renderer->getDevice(), &createInfo, NULL, &m_shaderModule) != VK_SUCCESS, "Vulkan failed to create shader module");
 		}
 
-		std::vector<char>& getShader() { return m_shader; }
-	private: // Methods
+		~Shader()
+		{
+			vkDestroyShaderModule(m_renderer->getDevice(), m_shaderModule, NULL);
+		}
 
+		VkShaderModule& getShaderModule() { return m_shaderModule; }
+	private: // Methods
+		
 	private: // Members
-		std::vector<char> m_shader;
+		VkShaderModule m_shaderModule;
+
+		Renderer* m_renderer;
 	};
 }

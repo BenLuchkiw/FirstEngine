@@ -6,7 +6,7 @@ namespace FE
 	{
 		FE_SCOPE_TRACE("Startup", "FE::initValidationLayers()");
 
-#ifndef VULKAN_VALIDATION_LAYERS
+#if !VULKAN_VALIDATION_LAYERS
 		return false;
 #endif
 		uint32_t layerCount;
@@ -23,7 +23,7 @@ namespace FE
 			}
 		}
 		FE_LOG_WARNING(!layerFound, "Failed to create Vulkan validation layers!")
-			return layerFound;
+		return layerFound;
 
 	}
 
@@ -52,18 +52,17 @@ namespace FE
 	{
 		FE_SCOPE_TRACE("Startup", "FE::debugCallback");
 
-		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-		{
-			FE_LOG_VERBOSE("validation layer: ");
-			FE_LOG_VERBOSE(pCallbackData->pMessage);
-		}
+		FE_LOG_INFO(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT == messageSeverity, pCallbackData->pMessage);
+		FE_LOG_WARNING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT == messageSeverity, pCallbackData->pMessage);
+		FE_LOG_ERROR(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT == messageSeverity, pCallbackData->pMessage);
+
 
 		return VK_FALSE;
 	}
 
 	void initializeDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT* debugMessenger)
 	{
-#ifndef VULKAN_VALIDATION_LAYERS
+#if !VULKAN_VALIDATION_LAYERS
 		return;
 #endif
 		FE_SCOPE_TRACE("Startup", "FE::initializeDebugMessenger");
@@ -75,7 +74,7 @@ namespace FE
 		createInfo.pfnUserCallback = debugCallback;
 
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-		VkResult result;
+		VkResult result = VK_RESULT_MAX_ENUM;
 		if (func != nullptr) {
 			result = func(instance, &createInfo, nullptr, debugMessenger);
 		}

@@ -3,6 +3,10 @@ This is a list of all #... notes that I left around the code that should be clea
 #Features // device features
 #Compute // add compute capabilities
 #Resizing // add resizing after swapchain is set up
+#Parameter // add parameters for whatever option is tagged
+#Depth // for implementing depth buffering
+#Wireframe // add wireframe ability
+#Multisampling
 
 
 #TODO // general cleanup
@@ -34,3 +38,7 @@ Window class
 		VkImageView
 
 pipelines and command buffers should be able to be split and shared between windows... maybe Ill see
+
+// PowerShell script for loc count within src
+cd c:\Programming\FirstEngine\src\
+(gci -include *.cpp, *.hpp -recurse | select-string .).Count

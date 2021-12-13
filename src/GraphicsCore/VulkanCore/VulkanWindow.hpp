@@ -10,23 +10,35 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
+#include "VulkanPipeline.hpp"
+
 namespace FE
 {
+	// Forward declaration
+	class Renderer;
+
 	class Window
 	{
 	public:
-		Window(const VkInstance& instance, const VkPhysicalDevice& renderingDevice, const VkDevice& device, VkExtent2D screenDimensions, const std::string& windowName);
+		Window(Renderer* renderer, VkExtent2D screenDimensions, const std::string& windowName);
 		Window() = delete;
 		~Window();
 
 		std::string& getWindowName() { return m_windowName; }
 		bool shouldWindowClose() { return glfwWindowShouldClose(m_window); }
 		GLFWwindow* getWindow() { return m_window; }
+
+		// For vulkan internal use only
+		VkExtent2D getScreenExtent() { return m_screenExtent; }
+		VkExtent2D getPixelExtent() { return m_pixelExtent; }
+		VkSurfaceFormatKHR getSurfaceFormat() { return m_surfaceFormat; }
+
 	private: // Methods
 		void createWindow();
 		void createSwapchain();
 		void recreateSwapchain(); // Requires a currently valid swapchain
 		void createImageViews();
+		void createPipelines();
 
 	private: // Members
 		// Owned
@@ -48,9 +60,9 @@ namespace FE
 		VkExtent2D m_pixelExtent;
 		VkExtent2D m_screenExtent;
 
+		std::vector<std::unique_ptr<Pipeline>> m_pipeline;
+
 		// Not owned
-		VkInstance m_instance;
-		VkDevice m_device;
-		VkPhysicalDevice m_renderingDevice;
+		Renderer* m_renderer;
 	};
 }

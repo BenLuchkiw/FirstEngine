@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.19)
+﻿cmake_minimum_required(VERSION 3.20)
 
 project(FirstEngine
 VERSION 1.0
@@ -41,7 +41,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_DIR="${CMAKE_CURRENT_LIST_DIR}")
 
 # TODO make these optional and toggleable
-target_compile_definitions(${PROJECT_NAME} PUBLIC MTR_ENABLED)
+# target_compile_definitions(${PROJECT_NAME} PUBLIC MTR_ENABLED)
 target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG)
 
 # Need more stable Vulkan related definitions

@@ -3,12 +3,14 @@
 
 #include "FirstEngine.hpp"
 
+#include "GraphicsCore/VulkanCore/VulkanShader.hpp"
+
 namespace FE
 {
 	FirstEngine::FirstEngine()
 	{
 		FE_SCOPE_TRACE("Startup", "FirstEngine::FirstEngine");
-		FE_LOG_VERBOSE("Starting");
+		FE_LOG_INFO(1, "Starting");
 		
 		FE_TRACING_FLUSH;
 	}
@@ -16,7 +18,7 @@ namespace FE
 	FirstEngine::~FirstEngine()
 	{
 		FE_SCOPE_TRACE("Cleanup", "FirstEngine::~FirstEngine()");
-		FE_LOG_VERBOSE("Ending");
+		FE_LOG_INFO(1, "Ending");
 
 		FE_TRACING_FLUSH;
 	}
@@ -24,15 +26,14 @@ namespace FE
 	void FirstEngine::run()
 	{
 		FE_SCOPE_TRACE("Running", "FirstEngine::run()");
-		FE_LOG_VERBOSE("Running");
+		FE_LOG_INFO(1, "Running");
 
 		renderer.createWindow(800, 600, "First Window");
 		renderer.createWindow(200, 200, "Second Window");
-		while (renderer.running)
+		while (!renderer.shouldExit())
 		{
 			renderer.draw();
 		}
-
 		FE_TRACING_FLUSH;
 	}
 }
